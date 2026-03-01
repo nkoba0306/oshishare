@@ -1,12 +1,28 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__github__get_me",
+      "mcp__github__create_repository",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__create_project",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__stitch__list_screens",
+      "Bash(ls:*)",
+      "Bash(npx shadcn@latest:*)",
+      "Bash(npm run:*)",
+      "Bash(grep:*)",
+      "Bash(npx supabase:*)",
+      "Bash(source:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_5276a66ac42f2957e523fd968be4eccec5170213 npx supabase:*)",
+      "Bash(npm install:*)",
+      "Bash(ss:*)",
+      "Bash(npx vercel:*)",
+      "Bash(git add:*)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "stitch",
     "github"
-  ],
-  "permissions": {
-    "allow": [
-      "mcp__github__get_me"
-    ]
-  }
+  ]
 }
