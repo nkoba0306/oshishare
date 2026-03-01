@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { submitVtuberRequest } from "../../actions";
+import { submitVtuberRequest } from "../actions";
 
 export default function VtuberRequestPage() {
   return (
