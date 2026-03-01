@@ -10,6 +10,7 @@ import {
   User,
   ListVideo,
   Settings,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ const navItems = [
   { href: "/explore", icon: Compass, label: "探す" },
   { href: "/post/new", icon: PlusCircle, label: "投稿する" },
   { href: "/playlist", icon: ListVideo, label: "再生リスト" },
+  { href: "/vtuber/requests", icon: UserPlus, label: "VTuber申請" },
   { href: "/mypage", icon: Heart, label: "推し" },
   { href: "/mypage", icon: User, label: "マイページ" },
   { href: "/settings", icon: Settings, label: "設定" },

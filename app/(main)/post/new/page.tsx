@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Star, Loader2, Link as LinkIcon, X, Search } from "lucide-react";
+import { Star, Loader2, Link as LinkIcon, X, Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { postSchema, type PostFormValues } from "@/lib/validations/post";
 import { createPost } from "./actions";
+import Link from "next/link";
 
 interface Metadata {
   type: "youtube" | "x";
@@ -299,9 +300,17 @@ export default function NewPostPage() {
                   </div>
                 )}
                 {vtuberQuery.length >= 1 && !searchingVtuber && vtuberResults.length === 0 && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    「{vtuberQuery}」に一致するVTuberが見つかりません
-                  </p>
+                  <div className="mt-2 rounded-lg border border-dashed border-border p-3 space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      「{vtuberQuery}」に一致するVTuberが見つかりません
+                    </p>
+                    <Button variant="outline" size="sm" className="gap-1" asChild>
+                      <Link href={`/vtuber/request?name=${encodeURIComponent(vtuberQuery)}`}>
+                        <Plus className="h-3 w-3" />
+                        VTuber登録を申請する
+                      </Link>
+                    </Button>
+                  </div>
                 )}
               </div>
             )}

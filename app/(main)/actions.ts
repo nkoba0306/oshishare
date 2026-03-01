@@ -124,6 +124,90 @@ export async function toggleLike(postId: string) {
   }
 }
 
+// VTuber登録申請
+export async function submitVtuberRequest(data: {
+  name: string;
+  channelUrl?: string;
+  reason?: string;
+}) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "ログインが必要です" };
+
+  if (!data.name.trim()) return { error: "VTuber名は必須です" };
+
+  // 既存VTuberチェック
+  const { data: existing } = await supabase
+    .from("vtubers")
+    .select("id")
+    .ilike("name", data.name.trim())
+    .maybeSingle();
+  if (existing) return { error: "このVTuberは既に登録されています" };
+
+  // 同名の申請チェック
+  const { data: pendingReq } = await supabase
+    .from("vtuber_requests")
+    .select("id")
+    .ilike("name", data.name.trim())
+    .eq("status", "pending")
+    .maybeSingle();
+  if (pendingReq) return { error: "同名のVTuber登録申請が既に存在します" };
+
+  const { data: req, error } = await supabase
+    .from("vtuber_requests")
+    .insert({
+      user_id: user.id,
+      name: data.name.trim(),
+      channel_url: data.channelUrl?.trim() || null,
+      reason: data.reason?.trim() || null,
+    })
+    .select("id")
+    .single();
+
+  if (error) return { error: error.message };
+  return { success: true, requestId: req.id };
+}
+
+// VTuber登録申請の承認
+export async function approveVtuberRequest(requestId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "ログインが必要です" };
+
+  const { error } = await supabase
+    .from("vtuber_request_approvals")
+    .insert({ user_id: user.id, request_id: requestId, action: "approve" });
+
+  if (error) {
+    if (error.code === "23505") return { error: "既に承認済みです" };
+    return { error: error.message };
+  }
+  return { success: true };
+}
+
+// VTuber登録申請の却下
+export async function rejectVtuberRequest(requestId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "ログインが必要です" };
+
+  const { error } = await supabase
+    .from("vtuber_request_approvals")
+    .insert({ user_id: user.id, request_id: requestId, action: "reject" });
+
+  if (error) {
+    if (error.code === "23505") return { error: "既に報告済みです" };
+    return { error: error.message };
+  }
+  return { success: true };
+}
+
 // 🔖 ブックマーク（投稿）トグル
 export async function toggleBookmark(postId: string) {
   const supabase = await createClient();
