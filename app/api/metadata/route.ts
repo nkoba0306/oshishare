@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
         .eq("channel_id", metadata.channelId)
         .single();
 
-      // チャンネルがVTuber本人なら stream、それ以外なら clip
-      const contentType = vtuber ? "stream" : "clip";
+      // デフォルトは stream（ユーザーが投稿フォームで変更可能）
+      const contentType = "stream";
 
       return NextResponse.json({
         type: "youtube",

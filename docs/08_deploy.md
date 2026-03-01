@@ -12,9 +12,15 @@
 - [x] 初期タグ（神回 / 歌枠 / ゲーム実況 / 雑談 / コラボ 他14種）
 
 ### 2. Vercelデプロイ
-- [ ] Vercelプロジェクト作成・GitHub連携
-- [ ] 環境変数設定
-- [ ] ビルド確認・デプロイ成功
+- [x] Vercelプロジェクト作成・GitHub連携
+- [x] 環境変数設定:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `YOUTUBE_API_KEY`
+  - `NEXT_PUBLIC_APP_URL`
+- [x] ビルド確認・デプロイ成功
+- [x] 本番URL: https://oshishare.vercel.app
 
 ### 3. 動作テスト
 - [ ] 認証テスト（Google / X ログイン）
@@ -34,5 +40,5 @@
 ## 完了条件
 - [x] 主要VTuber・事務所・タグのマスタデータが投入済み
 - [x] ビルドが正常に成功する
-- [ ] 本番環境（Vercel）にデプロイ済み
+- [x] 本番環境（Vercel）にデプロイ済み
 - [ ] 全機能が本番環境で正常に動作する

@@ -42,6 +42,7 @@ export default function NewPostPage() {
   const [fetchError, setFetchError] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [contentType, setContentType] = useState("stream");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -78,6 +79,7 @@ export default function NewPostPage() {
       }
 
       setMetadata(data);
+      setContentType(data.contentType);
       form.setValue("sourceUrl", urlInput.trim());
       if (data.matchedVTuber) {
         form.setValue("vtuber_id", data.matchedVTuber.id);
@@ -116,7 +118,7 @@ export default function NewPostPage() {
       comment: values.comment,
       rating: values.rating,
       tags: values.tags,
-      contentType: metadata.contentType,
+      contentType,
       videoId: metadata.videoId,
       tweetId: metadata.tweetId,
       videoTitle: metadata.title,
@@ -172,7 +174,7 @@ export default function NewPostPage() {
             )}
             <div className="flex-1 space-y-1">
               <Badge variant="secondary">
-                {CONTENT_TYPE_LABELS[metadata.contentType]}
+                {CONTENT_TYPE_LABELS[contentType]}
               </Badge>
               <p className="font-medium leading-snug">{metadata.title}</p>
               <p className="text-sm text-muted-foreground">
@@ -192,6 +194,28 @@ export default function NewPostPage() {
       {/* 投稿フォーム */}
       {metadata && (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          {/* コンテンツ種別 */}
+          <div className="space-y-2">
+            <Label>コンテンツ種別</Label>
+            <div className="flex gap-2">
+              {(["stream", "clip", "x_clip"] as const).map((ct) => (
+                <button
+                  key={ct}
+                  type="button"
+                  onClick={() => setContentType(ct)}
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
+                    contentType === ct
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {CONTENT_TYPE_LABELS[ct]}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* VTuber選択（マッチしなかった場合のID入力） */}
           {!metadata.matchedVTuber && (
             <div className="space-y-2">
