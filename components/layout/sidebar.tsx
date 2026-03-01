@@ -8,7 +8,6 @@ import {
   PlusCircle,
   Heart,
   User,
-  ListVideo,
   Settings,
   UserPlus,
 } from "lucide-react";
@@ -18,7 +17,6 @@ const navItems = [
   { href: "/", icon: Home, label: "ホーム" },
   { href: "/explore", icon: Compass, label: "探す" },
   { href: "/post/new", icon: PlusCircle, label: "投稿する" },
-  { href: "/playlist", icon: ListVideo, label: "再生リスト" },
   { href: "/vtuber/requests", icon: UserPlus, label: "VTuber申請" },
   { href: "/mypage", icon: Heart, label: "推し" },
   { href: "/mypage", icon: User, label: "マイページ" },

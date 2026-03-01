@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/post/post-card";
+import { PlaylistCard, type PlaylistCardData } from "@/components/playlist/playlist-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MyPageTabs } from "@/components/mypage/mypage-tabs";
+import { Plus } from "lucide-react";
 
 const TRUST_LABELS: Record<string, { label: string; color: string }> = {
   new: { label: "新規ユーザー", color: "bg-gray-500/20 text-gray-400" },
@@ -71,6 +74,7 @@ export default async function MyPage({
 
   // タブに応じたデータ取得
   let myPosts: PostCardData[] = [];
+  let myPlaylists: PlaylistCardData[] = [];
   let likedPosts: PostCardData[] = [];
   let bookmarkedPosts: PostCardData[] = [];
   let favoriteVtubers: { id: string; name: string; avatar_url: string | null; favorites_count: number }[] = [];
@@ -97,6 +101,30 @@ export default async function MyPage({
       bookmarkedIds = b.data?.map((x) => x.post_id) ?? [];
     }
     myPosts = data?.map((p) => mapPost(p as unknown as Record<string, unknown>, likedIds, bookmarkedIds)) ?? [];
+  } else if (tab === "playlists") {
+    const { data } = await supabase
+      .from("playlists")
+      .select(
+        `*, profiles!playlists_user_id_fkey ( display_name, avatar_url )`
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    myPlaylists = (data ?? []).map((pl) => {
+      const creator = pl.profiles as Record<string, string> | null;
+      return {
+        id: pl.id,
+        title: pl.title,
+        description: pl.description,
+        cover_url: pl.cover_url,
+        items_count: pl.items_count,
+        likes_count: pl.likes_count,
+        created_at: pl.created_at,
+        author_name: creator?.display_name,
+        author_avatar: creator?.avatar_url,
+      };
+    });
   } else if (tab === "liked") {
     const { data: likeRows } = await supabase
       .from("likes")
@@ -216,7 +244,29 @@ export default async function MyPage({
       <MyPageTabs currentTab={tab} />
 
       {/* コンテンツ */}
-      {tab === "favorites" ? (
+      {tab === "playlists" ? (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <Link
+              href="/playlist/new"
+              className="flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-accent px-4 py-2 text-sm font-bold text-white"
+            >
+              <Plus className="h-4 w-4" /> 再生リスト作成
+            </Link>
+          </div>
+          {myPlaylists.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {myPlaylists.map((pl) => (
+                <PlaylistCard key={pl.id} playlist={pl} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              まだ再生リストがありません
+            </p>
+          )}
+        </div>
+      ) : tab === "favorites" ? (
         favoriteVtubers.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {favoriteVtubers.map((v) => (

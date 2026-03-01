@@ -22,7 +22,8 @@
       "Bash(git push:*)",
       "WebFetch(domain:oshishare.vercel.app)",
       "Bash(curl:*)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "WebFetch(domain:oshishare-n5pidrjdl-nkoba0306s-projects.vercel.app)"
     ]
   },
   "enableAllProjectMcpServers": true,

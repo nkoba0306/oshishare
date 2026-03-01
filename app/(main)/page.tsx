@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PostCard, type PostCardData } from "@/components/post/post-card";
+import { PlaylistCard, type PlaylistCardData } from "@/components/playlist/playlist-card";
 import { FeedFilter } from "@/components/feed/feed-filter";
 
 interface FeedSearchParams {
@@ -156,6 +157,33 @@ async function getFeedPosts(searchParams: FeedSearchParams): Promise<PostCardDat
   return feed;
 }
 
+async function getFeedPlaylists(): Promise<PlaylistCardData[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("playlists")
+    .select(
+      `*, profiles!playlists_user_id_fkey ( display_name, avatar_url )`
+    )
+    .eq("visibility", "public")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  return (data ?? []).map((pl) => {
+    const creator = pl.profiles as Record<string, string> | null;
+    return {
+      id: pl.id,
+      title: pl.title,
+      description: pl.description,
+      cover_url: pl.cover_url,
+      items_count: pl.items_count,
+      likes_count: pl.likes_count,
+      created_at: pl.created_at,
+      author_name: creator?.display_name,
+      author_avatar: creator?.avatar_url,
+    };
+  });
+}
+
 async function getFilterOptions() {
   const supabase = await createClient();
 
@@ -183,8 +211,9 @@ export default async function HomePage({
     tag: typeof params.tag === "string" ? params.tag : undefined,
   };
 
-  const [posts, filterOptions] = await Promise.all([
+  const [posts, playlists, filterOptions] = await Promise.all([
     getFeedPosts(feedParams),
+    getFeedPlaylists(),
     getFilterOptions(),
   ]);
 
@@ -208,23 +237,42 @@ export default async function HomePage({
         currentContentType={feedParams.content_type}
       />
 
-      {posts.length === 0 ? (
+      {posts.length === 0 && playlists.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center">
           <p className="text-muted-foreground">
             まだ投稿がありません。最初のおすすめを投稿しよう！
           </p>
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              showApproval={post.status === "pending"}
-            />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        // 投稿と再生リストを時系列で混合
+        type FeedItem =
+          | { type: "post"; data: PostCardData; date: string }
+          | { type: "playlist"; data: PlaylistCardData; date: string };
+
+        const feedItems: FeedItem[] = [
+          ...posts.map((p) => ({ type: "post" as const, data: p, date: p.created_at })),
+          ...playlists.map((pl) => ({ type: "playlist" as const, data: pl, date: pl.created_at })),
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        return (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {feedItems.map((item) =>
+              item.type === "post" ? (
+                <PostCard
+                  key={`post-${item.data.id}`}
+                  post={item.data}
+                  showApproval={item.data.status === "pending"}
+                />
+              ) : (
+                <PlaylistCard
+                  key={`pl-${item.data.id}`}
+                  playlist={item.data}
+                />
+              )
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

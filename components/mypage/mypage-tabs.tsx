@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 const TABS = [
   { key: "posts", label: "自分の投稿" },
+  { key: "playlists", label: "再生リスト" },
   { key: "liked", label: "いいね" },
   { key: "bookmarked", label: "ブックマーク" },
   { key: "favorites", label: "お気に入りVTuber" },
