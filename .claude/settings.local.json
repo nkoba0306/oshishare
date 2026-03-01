@@ -1,0 +1,12 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "stitch",
+    "github"
+  ],
+  "permissions": {
+    "allow": [
+      "mcp__github__get_me"
+    ]
+  }
+}
