@@ -4,13 +4,15 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Star, Loader2, Link as LinkIcon, X } from "lucide-react";
+import { Star, Loader2, Link as LinkIcon, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import { postSchema, type PostFormValues } from "@/lib/validations/post";
 import { createPost } from "./actions";
 
@@ -43,6 +45,10 @@ export default function NewPostPage() {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [contentType, setContentType] = useState("stream");
+  const [vtuberQuery, setVtuberQuery] = useState("");
+  const [vtuberResults, setVtuberResults] = useState<{ id: string; name: string; avatar_url: string | null }[]>([]);
+  const [selectedVtuber, setSelectedVtuber] = useState<{ id: string; name: string; avatar_url: string | null } | null>(null);
+  const [searchingVtuber, setSearchingVtuber] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -83,6 +89,7 @@ export default function NewPostPage() {
       form.setValue("sourceUrl", urlInput.trim());
       if (data.matchedVTuber) {
         form.setValue("vtuber_id", data.matchedVTuber.id);
+        setSelectedVtuber(data.matchedVTuber);
       }
     } catch {
       setFetchError("メタデータの取得に失敗しました");
@@ -90,6 +97,31 @@ export default function NewPostPage() {
       setFetchingMeta(false);
     }
   }, [urlInput, form]);
+
+  const searchVtuber = async (query: string) => {
+    setVtuberQuery(query);
+    if (query.length < 1) {
+      setVtuberResults([]);
+      return;
+    }
+    setSearchingVtuber(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("vtubers")
+      .select("id, name, avatar_url")
+      .ilike("name", `%${query}%`)
+      .order("favorites_count", { ascending: false })
+      .limit(8);
+    setVtuberResults(data ?? []);
+    setSearchingVtuber(false);
+  };
+
+  const selectVtuber = (v: { id: string; name: string; avatar_url: string | null }) => {
+    setSelectedVtuber(v);
+    form.setValue("vtuber_id", v.id);
+    setVtuberQuery("");
+    setVtuberResults([]);
+  };
 
   const addTag = () => {
     const tag = tagInput.trim();
@@ -216,21 +248,69 @@ export default function NewPostPage() {
             </div>
           </div>
 
-          {/* VTuber選択（マッチしなかった場合のID入力） */}
-          {!metadata.matchedVTuber && (
-            <div className="space-y-2">
-              <Label>VTuber（IDを入力）</Label>
-              <Input
-                placeholder="VTuber IDを入力"
-                {...form.register("vtuber_id")}
-              />
-              {form.formState.errors.vtuber_id && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.vtuber_id.message}
-                </p>
-              )}
-            </div>
-          )}
+          {/* VTuber選択 */}
+          <div className="space-y-2">
+            <Label>VTuber</Label>
+            {selectedVtuber ? (
+              <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={selectedVtuber.avatar_url ?? ""} />
+                  <AvatarFallback className="text-xs">{selectedVtuber.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="flex-1 font-medium">{selectedVtuber.name}</span>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedVtuber(null); form.setValue("vtuber_id", ""); }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="VTuber名で検索..."
+                  value={vtuberQuery}
+                  onChange={(e) => searchVtuber(e.target.value)}
+                  className="pl-10"
+                />
+                {searchingVtuber && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                {vtuberResults.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-lg border border-border bg-card shadow-lg">
+                    {vtuberResults.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => selectVtuber(v)}
+                        className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-secondary"
+                      >
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={v.avatar_url ?? ""} />
+                          <AvatarFallback className="text-[10px]">{v.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{v.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {vtuberQuery.length >= 1 && !searchingVtuber && vtuberResults.length === 0 && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    「{vtuberQuery}」に一致するVTuberが見つかりません
+                  </p>
+                )}
+              </div>
+            )}
+            {form.formState.errors.vtuber_id && !selectedVtuber && (
+              <p className="text-sm text-destructive">
+                {form.formState.errors.vtuber_id.message}
+              </p>
+            )}
+          </div>
 
           {/* おすすめコメント */}
           <div className="space-y-2">
