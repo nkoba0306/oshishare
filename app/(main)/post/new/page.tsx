@@ -305,7 +305,7 @@ export default function NewPostPage() {
                       「{vtuberQuery}」に一致するVTuberが見つかりません
                     </p>
                     <Button variant="outline" size="sm" className="gap-1" asChild>
-                      <Link href={`/vtuber/request?name=${encodeURIComponent(vtuberQuery)}`}>
+                      <Link href={`/vtuber/new?name=${encodeURIComponent(vtuberQuery)}`}>
                         <Plus className="h-3 w-3" />
                         VTuber登録を申請する
                       </Link>

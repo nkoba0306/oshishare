@@ -43,7 +43,7 @@ export default async function VtuberRequestsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">VTuber登録申請</h1>
         <Button asChild size="sm" className="gap-1">
-          <Link href="/vtuber/request">
+          <Link href="/vtuber/new">
             <Plus className="h-4 w-4" />
             新規申請
           </Link>
